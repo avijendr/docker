@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+  apache:
+    build: ./Rproxy-Apache
+    image: negocios:rproxy-apache
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - tomcat-java
+    volumes:
+        - $ROOT_DIR/host-data/apache/conf:/etc/apache2/sites-available
+        - $ROOT_DIR/host-data/apache/logs:/var/log/apache2
+        - $ROOT_DIR/host-data/apache/certs:/etc/apache2/certs
+    container_name: "rproxy-apache"
+
+  tomcat-java:
+    build: ./Tomcat-Java-8
+    image: buzzmove:tomcat-oracle-java
+    ports:
+      - "8080:8080"
+      - "8009:8009"
+    links:
+      - mysql
+    volumes:
+       - $ROOT_DIR/host-data/tomcat/webapps:/opt/tomcat/webapps
+       - $ROOT_DIR/host-data/tomcat/logs:/opt/tomcat/logs
+    container_name: "tomcat-java-8"
+
+  mysql:
+    image: mysql:5.5
+    ports:
+      - "3306:3306"
+    environment:
+        MYSQL_DATABASE: $ENV_MYSQL_DATABSE
+        MYSQL_USER: $ENV_MYSQL_USER
+        MYSQL_PASSWORD: $ENV_MYSQL_PWD
+        MYSQL_ROOT_PASSWORD: $ENV_MYSQL_ROOT_PWD
+    volumes:
+      - $ROOT_DIR/host-data/sql-dumps:/docker-entrypoint-initdb.d
+      - $ROOT_DIR/host-data/sql-patches:/opt/mysql-patches
+    command: mysqld --character-set-server=utf8  --lower_case_table_names=1 --key_buffer=16M --max_allowed_packet=100M --thread_stack=256K --long_query_time=2

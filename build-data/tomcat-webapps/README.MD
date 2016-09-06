@@ -1,0 +1,1 @@
+Add the war here. Should be ROOT.war
